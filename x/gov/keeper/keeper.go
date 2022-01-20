@@ -36,6 +36,9 @@ type Keeper struct {
 
 	// Proposal router
 	router v1beta1.Router
+
+	// maxMetadataLen defines the maximum length of a proposal metadata.
+	maxMetadataLen uint64
 }
 
 // NewKeeper returns a governance keeper. It handles:
@@ -48,6 +51,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec, key storetypes.StoreKey, paramSpace types.ParamSubspace,
 	authKeeper types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper, rtr v1beta1.Router,
+	maxMetadataLen uint64,
 ) Keeper {
 
 	// ensure governance module account is set
@@ -61,13 +65,14 @@ func NewKeeper(
 	rtr.Seal()
 
 	return Keeper{
-		storeKey:   key,
-		paramSpace: paramSpace,
-		authKeeper: authKeeper,
-		bankKeeper: bankKeeper,
-		sk:         sk,
-		cdc:        cdc,
-		router:     rtr,
+		storeKey:       key,
+		paramSpace:     paramSpace,
+		authKeeper:     authKeeper,
+		bankKeeper:     bankKeeper,
+		sk:             sk,
+		cdc:            cdc,
+		router:         rtr,
+		maxMetadataLen: maxMetadataLen,
 	}
 }
 
