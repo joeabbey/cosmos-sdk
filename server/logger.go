@@ -20,13 +20,6 @@ func (z ZeroLogWrapper) Info(msg string, keyVals ...interface{}) {
 	z.Logger.Info().Fields(getLogFields(keyVals...)).Msg(msg)
 }
 
-// Info implements Tendermint's Logger interface and logs with level INFO. A set
-// of key/value tuples may be provided to add context to the log. The number of
-// tuples must be even and the key of the tuple must be a string.
-func (z ZeroLogWrapper) IsDebugging() bool {
-	return false
-}
-
 // Error implements Tendermint's Logger interface and logs with level ERR. A set
 // of key/value tuples may be provided to add context to the log. The number of
 // tuples must be even and the key of the tuple must be a string.
