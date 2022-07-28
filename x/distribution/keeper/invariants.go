@@ -3,6 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	"os"
+	"runtime/pprof"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -42,6 +45,23 @@ func AllInvariants(k Keeper) sdk.Invariant {
 // NonNegativeOutstandingInvariant checks that outstanding unwithdrawn fees are never negative
 func NonNegativeOutstandingInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
+		profile_path := os.Getenv("DAEMON_PROFILE_PATH")
+		if _, err := os.Stat(profile_path); !os.IsNotExist(err) {
+			invariantprofile := fmt.Sprintf("%s/crisis_distribution_nonnegative_outstanding.prof", profile_path)
+
+			f, err := os.Create(invariantprofile)
+			if err != nil {
+				panic(fmt.Sprintf("could not create profile: ", err))
+			}
+			defer f.Close()
+
+			if err := pprof.StartCPUProfile(f); err != nil {
+				panic(fmt.Sprintf("could not start profile: ", err))
+			}
+			defer pprof.StopCPUProfile()
+			k.Logger(ctx).Info("Created profile %s", invariantprofile)
+		}
+
 		var msg string
 		var count int
 		var outstanding sdk.DecCoins
@@ -64,6 +84,22 @@ func NonNegativeOutstandingInvariant(k Keeper) sdk.Invariant {
 // CanWithdrawInvariant checks that current rewards can be completely withdrawn
 func CanWithdrawInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
+		profile_path := os.Getenv("DAEMON_PROFILE_PATH")
+		if _, err := os.Stat(profile_path); !os.IsNotExist(err) {
+			invariantprofile := fmt.Sprintf("%s/crisis_distribution_can_withdraw.prof", profile_path)
+
+			f, err := os.Create(invariantprofile)
+			if err != nil {
+				panic(fmt.Sprintf("could not create profile: ", err))
+			}
+			defer f.Close()
+
+			if err := pprof.StartCPUProfile(f); err != nil {
+				panic(fmt.Sprintf("could not start profile: ", err))
+			}
+			defer pprof.StopCPUProfile()
+			k.Logger(ctx).Info("Created profile %s", invariantprofile)
+		}
 		// cache, we don't want to write changes
 		ctx, _ = ctx.CacheContext()
 
@@ -105,6 +141,22 @@ func CanWithdrawInvariant(k Keeper) sdk.Invariant {
 // ReferenceCountInvariant checks that the number of historical rewards records is correct
 func ReferenceCountInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
+		profile_path := os.Getenv("DAEMON_PROFILE_PATH")
+		if _, err := os.Stat(profile_path); !os.IsNotExist(err) {
+			invariantprofile := fmt.Sprintf("%s/crisis_distribution_reference_count.prof", profile_path)
+
+			f, err := os.Create(invariantprofile)
+			if err != nil {
+				panic(fmt.Sprintf("could not create profile: ", err))
+			}
+			defer f.Close()
+
+			if err := pprof.StartCPUProfile(f); err != nil {
+				panic(fmt.Sprintf("could not start profile: ", err))
+			}
+			defer pprof.StopCPUProfile()
+			k.Logger(ctx).Info("Created profile %s", invariantprofile)
+		}
 		valCount := uint64(0)
 		k.stakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
 			valCount++
@@ -135,6 +187,23 @@ func ReferenceCountInvariant(k Keeper) sdk.Invariant {
 // is consistent with the sum of validator outstanding rewards
 func ModuleAccountInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
+		profile_path := os.Getenv("DAEMON_PROFILE_PATH")
+		if _, err := os.Stat(profile_path); !os.IsNotExist(err) {
+			invariantprofile := fmt.Sprintf("%s/crisis_distribution_module_account.prof", profile_path)
+
+			f, err := os.Create(invariantprofile)
+			if err != nil {
+				panic(fmt.Sprintf("could not create profile: ", err))
+			}
+			defer f.Close()
+
+			if err := pprof.StartCPUProfile(f); err != nil {
+				panic(fmt.Sprintf("could not start profile: ", err))
+			}
+			defer pprof.StopCPUProfile()
+			k.Logger(ctx).Info("Created profile %s", invariantprofile)
+		}
+
 		var expectedCoins sdk.DecCoins
 		k.IterateValidatorOutstandingRewards(ctx, func(_ sdk.ValAddress, rewards types.ValidatorOutstandingRewards) (stop bool) {
 			expectedCoins = expectedCoins.Add(rewards.Rewards...)
