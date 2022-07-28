@@ -76,16 +76,23 @@ func CanWithdrawInvariant(k Keeper) sdk.Invariant {
 			valDelegationAddrs[valAddr] = append(valDelegationAddrs[valAddr], del.GetDelegatorAddr())
 		}
 
+		logger := k.Logger(ctx)
 		// iterate over all validators
-		k.stakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
+		k.stakingKeeper.IterateValidators(ctx, func(i int64, val stakingtypes.ValidatorI) (stop bool) {
+			logger.Info(fmt.Sprintf("Checking %3d/150", i))
+
 			_, _ = k.WithdrawValidatorCommission(ctx, val.GetOperator())
 
 			delegationAddrs, ok := valDelegationAddrs[val.GetOperator().String()]
 			if ok {
+				d := len(delegationAddrs)
+				j := 0
 				for _, delAddr := range delegationAddrs {
+					j++
 					if _, err := k.WithdrawDelegationRewards(ctx, delAddr, val.GetOperator()); err != nil {
 						panic(err)
 					}
+					logger.Info(fmt.Sprintf("Checking %3d/150 : %d/%d", i, j, d))
 				}
 			}
 
