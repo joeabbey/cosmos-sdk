@@ -65,15 +65,13 @@ func NonNegativeOutstandingInvariant(k Keeper) sdk.Invariant {
 func CanWithdrawInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 
-		logger := k.Logger(ctx)
-
-		logger.Info("Cache Context")
+		k.Logger(ctx).Info("Cache Context")
 		// cache, we don't want to write changes
 		ctx, _ = ctx.CacheContext()
 
 		var remaining sdk.DecCoins
 
-		logger.Info("Cache Context Completed")
+		k.Logger(ctx).Info("Cache Context Completed")
 
 		numDel := 0
 		valDelegationAddrs := make(map[string][]sdk.AccAddress)
@@ -82,14 +80,14 @@ func CanWithdrawInvariant(k Keeper) sdk.Invariant {
 			valDelegationAddrs[valAddr] = append(valDelegationAddrs[valAddr], del.GetDelegatorAddr())
 
 			if numDel % 100 == 99 {
-				logger.Info(fmt.Sprintf("Appended %d delegations", numDel))
+				k.Logger(ctx).Info(fmt.Sprintf("Appended %d delegations", numDel))
 			}
 			numDel++
 		}
 
 		// iterate over all validators
 		k.stakingKeeper.IterateValidators(ctx, func(i int64, val stakingtypes.ValidatorI) (stop bool) {
-			logger.Info(fmt.Sprintf("Checking %3d/150", i))
+			k.Logger(ctx).Info(fmt.Sprintf("Checking %3d/150", i))
 
 			_, _ = k.WithdrawValidatorCommission(ctx, val.GetOperator())
 
@@ -102,7 +100,7 @@ func CanWithdrawInvariant(k Keeper) sdk.Invariant {
 					if _, err := k.WithdrawDelegationRewards(ctx, delAddr, val.GetOperator()); err != nil {
 						panic(err)
 					}
-					logger.Info(fmt.Sprintf("Checking %3d/150 : %d/%d", i, j, d))
+					k.Logger(ctx).Info(fmt.Sprintf("Checking %3d/150 : %d/%d", i, j, d))
 				}
 			}
 
