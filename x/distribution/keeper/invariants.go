@@ -65,18 +65,28 @@ func NonNegativeOutstandingInvariant(k Keeper) sdk.Invariant {
 func CanWithdrawInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 
+		logger := k.Logger(ctx)
+
+		logger.Info("Cache Context")
 		// cache, we don't want to write changes
 		ctx, _ = ctx.CacheContext()
 
 		var remaining sdk.DecCoins
 
+		logger.Info("Cache Context Completed")
+
+		numDel := 0
 		valDelegationAddrs := make(map[string][]sdk.AccAddress)
 		for _, del := range k.stakingKeeper.GetAllSDKDelegations(ctx) {
 			valAddr := del.GetValidatorAddr().String()
 			valDelegationAddrs[valAddr] = append(valDelegationAddrs[valAddr], del.GetDelegatorAddr())
+
+			if numDel % 100 == 99 {
+				logger.Info(fmt.Sprintf("Appended %d delegations", numDel))
+			}
+			numDel++
 		}
 
-		logger := k.Logger(ctx)
 		// iterate over all validators
 		k.stakingKeeper.IterateValidators(ctx, func(i int64, val stakingtypes.ValidatorI) (stop bool) {
 			logger.Info(fmt.Sprintf("Checking %3d/150", i))
