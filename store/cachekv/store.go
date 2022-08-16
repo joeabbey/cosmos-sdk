@@ -2,6 +2,7 @@ package cachekv
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"sort"
 	"sync"
@@ -15,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/telemetry"
 	"github.com/cosmos/cosmos-sdk/types/kv"
+	"github.com/tendermint/tendermint/libs/math"
 )
 
 // If value is nil but deleted is false, it means the parent doesn't have the
@@ -277,6 +279,8 @@ const (
 
 // Constructs a slice of dirty items, to use w/ memIterator.
 func (store *Store) dirtyItems(start, end []byte) {
+	const THRESHOLD = 1024
+
 	startStr, endStr := conv.UnsafeBytesToStr(start), conv.UnsafeBytesToStr(end)
 	if startStr > endStr {
 		// Nothing to do here.
@@ -291,7 +295,7 @@ func (store *Store) dirtyItems(start, end []byte) {
 	// O(N^2) overhead.
 	// Even without that, too many range checks eventually becomes more expensive
 	// than just not having the cache.
-	if n < 1024 {
+	if n < THRESHOLD {
 		for key := range store.unsortedCache {
 			if dbm.IsKeyInDomain(conv.UnsafeStrToBytes(key), start, end) {
 				cacheValue := store.cache[key]
@@ -321,6 +325,22 @@ func (store *Store) dirtyItems(start, end []byte) {
 	if startIndex < 0 {
 		startIndex = 0
 	}
+
+	preStartIndex := startIndex
+	preEndIndex := endIndex
+
+	// Since we spent cycles to sort the values, we should process and remove a reasonable amount
+	// ensure start to end is at least THRESHOLD in size
+	// if below THRESHOLD, expand it to cover additional values
+	// this amortizes the cost of processing elements across multiple calls
+	if endIndex-startIndex < THRESHOLD {
+		endIndex = math.MinInt(startIndex+THRESHOLD, len(strL)-1)
+		if endIndex-startIndex < THRESHOLD {
+			startIndex = math.MaxInt(endIndex-THRESHOLD, 0)
+		}
+	}
+
+	fmt.Printf("%d, %d, %d, %d, %d\n", n, preStartIndex, preEndIndex, startIndex, endIndex)
 
 	kvL := make([]*kv.Pair, 0)
 	for i := startIndex; i <= endIndex; i++ {
