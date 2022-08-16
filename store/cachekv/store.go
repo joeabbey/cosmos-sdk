@@ -303,6 +303,7 @@ func (store *Store) dirtyItems(start, end []byte) {
 			}
 		}
 		store.clearUnsortedCacheSubset(unsorted, stateUnsorted)
+		fmt.Printf("%d, %d\n", n, len(store.unsortedCache))
 		return
 	}
 
