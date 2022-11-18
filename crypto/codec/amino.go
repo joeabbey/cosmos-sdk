@@ -17,13 +17,13 @@ import (
 func RegisterCrypto(cdc *codec.LegacyAmino) {
 	pubOptions := amino.InterfaceOptions{
 		Priority: []string{
-			"tendermint/PubKeySecp256k1",
+			"ethermint/PubKeyEthSecp256k1",
 			"injective/PubKeyEthSecp256k1",
 		},
 	}
 	privOptions := amino.InterfaceOptions{
 		Priority: []string{
-			"tendermint/PrivKeySecp256k1",
+			"ethermint/PrivKeyEthSecp256k1",
 			"injective/PrivKeyEthSecp256k1",
 		},
 	}
